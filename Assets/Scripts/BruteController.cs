@@ -70,16 +70,9 @@ public class BruteController : MonoBehaviour
         //throw
         if (Input.GetKeyDown(KeyCode.T) && holdingFrisbee == true)
         {
+            Debug.Log($"Start Throw{Time.time}");
             animator.SetTrigger("Throw");
-
-            float animationLength = (animator.GetCurrentAnimatorStateInfo(0).length + animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
-
-
-            AddEvent(1, 0.2f, "Throw", 0);
-
-            waitLength(animationLength);
-
-            ft.ThrowFrisbee();
+            //ft.ThrowFrisbee();
             holdingFrisbee = false;
         }
 
