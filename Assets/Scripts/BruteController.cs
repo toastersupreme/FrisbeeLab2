@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.AI;
 
-[RequireComponent(typeof(CharacterController), typeof(Animator))]
+[RequireComponent(typeof(CharacterController), typeof(Animator),typeof(FrisbeeThrower))]
 public class BruteController : MonoBehaviour
 {
     private CharacterController controller;
@@ -17,9 +18,7 @@ public class BruteController : MonoBehaviour
     [SerializeField]
     private float runSpeed = 1f;
 
-    private bool runBool = false;
-
-    private bool holdingFrisbee;
+    private bool runBool = false , frisbeeInRange = false, holdingFrisbee;
 
     private FrisbeeThrower ft;
 
@@ -32,8 +31,6 @@ public class BruteController : MonoBehaviour
         animator = GetComponent<Animator>();
         ft = GetComponent<FrisbeeThrower>();
         holdingFrisbee = true;
-
-        
     }
 
     // Update is called once per frame
@@ -60,10 +57,10 @@ public class BruteController : MonoBehaviour
         }
 
         //pick up
-        if (Input.GetKeyDown(KeyCode.R) && holdingFrisbee == false)
+        if (Input.GetKeyDown(KeyCode.R) && holdingFrisbee == false && frisbeeInRange)
         {
             animator.SetTrigger("Pick Up");
-            ft.PickUp();
+            //ft.PickUp();
             holdingFrisbee = true;
         }
 
@@ -101,6 +98,21 @@ public class BruteController : MonoBehaviour
         animationEvent.time = time;
         AnimationClip clip = animator.runtimeAnimatorController.animationClips[Clip];
         clip.AddEvent(animationEvent);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Frisbee"))
+        {
+            frisbeeInRange = true;
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Frisbee"))
+        {
+            frisbeeInRange = false;
+        }
     }
 }
 
