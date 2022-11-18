@@ -12,16 +12,19 @@ public class BruteController : MonoBehaviour
     private Animator animator;
 
     [SerializeField]
+    private GameObject Cage;
+    [SerializeField]
     private float moveSpeed = 5.0f;
     [SerializeField]
     private float turnSpeed = 0.5f;
     [SerializeField]
     private float runSpeed = 1f;
 
-    private bool runBool = false , frisbeeInRange = false, holdingFrisbee;
+    private bool runBool = false , frisbeeInRange = false, holdingFrisbee, isEnabled;
 
     private FrisbeeThrower ft;
 
+ 
 
 
     // Start is called before the first frame update
@@ -30,58 +33,66 @@ public class BruteController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
         ft = GetComponent<FrisbeeThrower>();
+        UiManager.Instance.m_GameEnd.AddListener(Disable);
+        UiManager.Instance.m_OutOfBounds.AddListener(OutOfBound);
         holdingFrisbee = true;
+        isEnabled = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.LeftShift))
+        if(isEnabled)
         {
-            animator.SetBool("Run", true);
-            runBool = true;
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                animator.SetBool("Run", true);
+                runBool = true;
+            }
+            else
+            {
+                animator.SetBool("Run", false);
+                runBool = false;
+            }
+
+            if (runBool == true)
+            {
+                runSpeed = 2;
+            }
+            else
+            {
+                runSpeed = 1;
+            }
+
+            //pick up
+            if (Input.GetKeyDown(KeyCode.R) && holdingFrisbee == false && frisbeeInRange)
+            {
+                animator.SetTrigger("Pick Up");
+                holdingFrisbee = true;
+            }
+
+            //throw
+            if (Input.GetKeyDown(KeyCode.T) && holdingFrisbee == true)
+            {
+                UiManager.Instance.increaseThrowCount();
+                Debug.Log($"Start Throw{Time.time}");
+                animator.SetTrigger("Throw");
+                holdingFrisbee = false;
+            }
+
+            transform.Rotate(0, Input.GetAxis("Horizontal") * turnSpeed, 0);
+
+            Vector3 forward = transform.TransformDirection(Vector3.forward);
+            float speed = moveSpeed * Input.GetAxis("Vertical");
+
+            if (!holdingFrisbee)
+            {
+                controller.SimpleMove(forward * speed * runSpeed);
+                animator.SetFloat("Speed", speed);
+            }
+
+            UiManager.Instance.CageDistance = Mathf.RoundToInt(Vector3.Distance(ft.Frisbee.position, Cage.transform.position));
         }
-        else
-        {
-            animator.SetBool("Run", false);
-            runBool = false;
-        }
-
-        if (runBool == true)
-        {
-            runSpeed = 2;
-        }
-        else
-        {
-            runSpeed = 1;
-        }
-
-        //pick up
-        if (Input.GetKeyDown(KeyCode.R) && holdingFrisbee == false && frisbeeInRange)
-        {
-            animator.SetTrigger("Pick Up");
-            //ft.PickUp();
-            holdingFrisbee = true;
-        }
-
-        //throw
-        if (Input.GetKeyDown(KeyCode.T) && holdingFrisbee == true)
-        {
-            Debug.Log($"Start Throw{Time.time}");
-            animator.SetTrigger("Throw");
-            //ft.ThrowFrisbee();
-            holdingFrisbee = false;
-        }
-
-        transform.Rotate(0, Input.GetAxis("Horizontal") * turnSpeed, 0);
-
-        Vector3 forward = transform.TransformDirection(Vector3.forward);
-        float speed = moveSpeed * Input.GetAxis("Vertical");
-
-        controller.SimpleMove(forward * speed * runSpeed);
-
-        animator.SetFloat("Speed", speed);
-
     }
 
     IEnumerator waitLength(float time)
@@ -113,6 +124,17 @@ public class BruteController : MonoBehaviour
         {
             frisbeeInRange = false;
         }
+    }
+
+    private void Disable()
+    {
+        isEnabled = false;
+        animator.SetTrigger("Endgame");
+    }
+    private void OutOfBound()
+    {
+        animator.SetTrigger("Pick Up");
+        holdingFrisbee = true;
     }
 }
 

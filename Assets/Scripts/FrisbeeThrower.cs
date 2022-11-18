@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+
+
 
 public class FrisbeeThrower : MonoBehaviour
 {
@@ -11,13 +14,14 @@ public class FrisbeeThrower : MonoBehaviour
     public Animator animator;
     private Rigidbody Rigidbody;
     private Quaternion holdingState;
-    public int throwCount = 0;
-    public string scoreTitle;
 
+    [Range(0f, 1f)]
+    public float throwPercentage;
     private void Start()
     {
         Rigidbody = Frisbee.GetComponent<Rigidbody>();
         holdingState = Frisbee.transform.rotation;
+        UiManager.Instance.m_OutOfBounds.AddListener(PickUp);
     }
     public void PickUp()
     {
@@ -28,49 +32,9 @@ public class FrisbeeThrower : MonoBehaviour
     }
     public void ThrowFrisbee()
     {
-        //throw it forword lol
+        throwPercentage = UiManager.Instance.powerValue();
         Frisbee.transform.parent = null;
         Rigidbody.isKinematic = false;
-        Rigidbody.AddForce(MainBody.right * ThrowStrength, ForceMode.Impulse);
-        throwCount++;
-    }
-
-    public void Score()
-    {
-        if (throwCount == 1)
-        {
-            scoreTitle = "Albatross";
-        }
-        else if (throwCount == 2)
-        {
-            scoreTitle = "Eagle";
-        }
-        else if (throwCount == 3)
-        {
-            scoreTitle = "Birdie";
-        }
-        else if (throwCount == 4)
-        {
-            scoreTitle = "Par";
-        }
-        else if (throwCount == 5)
-        {
-            scoreTitle = "Bogey!";
-        }
-        else if (throwCount == 6)
-        {
-            scoreTitle = "Double Bogey!";
-        }
-        else if (throwCount <= 7)
-        {
-            scoreTitle = "Triple Bogey!";
-        }
-
-        //something should go here to display the players score when they get the frisbee in the goal thing
-
-        if (scoreTitle == "Triple Bogey!")
-        {
-            //end the game i guess idk im too tired
-        }
+        Rigidbody.AddForce((ThrowStrength * throwPercentage) * MainBody.right, ForceMode.Impulse);
     }
 }
